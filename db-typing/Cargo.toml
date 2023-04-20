@@ -1,0 +1,10 @@
+[package]
+name = "db-typing"
+version = "0.1.0"
+edition = "2021"
+description = "type abstractions for database storage engine"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+auto_impl = "1.0.1"

@@ -1,0 +1,9 @@
+[workspace]
+members = [
+	"db-core",
+	"db-test",
+	"db-side",
+	"db-lang",
+	"db-x",
+	"db-typing",
+]

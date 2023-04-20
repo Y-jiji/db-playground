@@ -1,0 +1,19 @@
+[package]
+name = "db-test"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+typing={path="../db-typing", package="db-typing"}
+revm-interpreter = "1.1.1"    # REVM Interpreter
+revm-primitives = "1.1.1"     # REVM Primitives
+rand = "0.8.5"
+chacha = "0.3.0"
+rand_chacha = "0.3.1"
+auto_impl = "1.0.1"
+rand_xoshiro = "0.6.0"
+
+[dev-dependencies]
+rand = "0.8.5"

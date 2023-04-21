@@ -81,14 +81,14 @@ where ...
         );
         // ----------------------------------------------
         let tid = txn.id();
-        for (key, (_val, ver)) in txn.ax.rdset {
-            self.table.unread(&key, &tid, &ver);
+        for (key, (_val, ver)) in &txn.ax.rdset {
+            self.table.unread(key, &tid, ver);
         }
-        for (key, (_val, ispub)) in txn.ax.wrset {
-            let victim = if ispub {
-                self.table.unwrite(&key, &tid)
+        for (key, (_val, ispub)) in &txn.ax.wrset {
+            let victim = if *ispub {
+                self.table.unwrite(key, &tid)
             } else {
-                self.table.unwlock(&key, &tid);
+                self.table.unwlock(key, &tid);
                 BTreeSet::new()
             };
             for vic in victim.range(self.progress().succ()..) {
@@ -96,7 +96,7 @@ where ...
             }
         }
         let ckpt = self.ckpts.get(&tid).unwrap_or_else(|| unreachable!());
-        txn.ax = Aux::new();
+        *txn.ax.as_mut() = Aux::new();
         txn.tx.goto(*ckpt);
         self.tpool.put_todo(txn);
         self.reset.remove(&tid);
@@ -138,19 +138,16 @@ where ...
         let mut map = Vec::new();
         let mut should_read_durable = false;
         if let Some(keys) = prp.tryc_indexer() {
+            // read versions in range [progress + 1, tid]
             for key in keys {
                 if let Some(val) = txn.ax.read_local(&key) {
-                    if val.is_some() {
-                        map.push((key, val));
-                    }
+                    if val.is_some() { map.push((key, val)) }
                     continue
                 }
                 // read latest previous version, add tid to dependencies
                 match self.table.read(key.clone(), tid) {
                     Ok((val, ver)) => {
-                        if val.is_some() {
-                            map.push((key.clone(), val.clone()));
-                        }
+                        if val.is_some() { map.push((key.clone(), val.clone())) }
                         txn.ax.rdset.insert(key, (val, ver));
                     },
                     Err(DepDurable) => {
@@ -168,11 +165,14 @@ where ...
             "[{:<8?}    rd]       at:{:<8?}      {:?}    {:?}",
             txn.id(), self.progress(), prp, map);
         // -------------------------------------------------------------
+        // fallback to durable storage
         if should_read_durable {
+            // read versions in range [0, progress]
             for (key, val) in dur.rd(prp).map_err(External)?.into_mapping() {
-                if val.is_some() {
-                    map.push((key.clone(), val.clone()));
-                }
+                // put them into map iff there is no later version
+                if txn.ax.wrset.contains_key(&key) { continue }
+                if txn.ax.rdset.contains_key(&key) { continue }
+                if val.is_some() { map.push((key.clone(), val.clone())) }
                 txn.ax.rdset.insert(key, (val, T::I::zero()));
             }
         }
@@ -193,10 +193,12 @@ where ...
             return Ok(self.get_next())
         }
         for (key, val) in map.into_mapping() {
+            // if write lock is already acquired
             if txn.ax.wrset.contains_key(&key) {
                 *txn.ax.wrset.get_mut(&key).unwrap() = (val, false);
                 continue
             }
+            // acquire write lock and write locally
             match self.table.wlock(key.clone(), tid) {
                 Ok(Some(preempted)) => {
                     self.reset.insert(preempted);

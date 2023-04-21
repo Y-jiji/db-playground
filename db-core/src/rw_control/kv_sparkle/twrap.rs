@@ -30,13 +30,13 @@ impl<I, K: Hash + Eq, V: Clone> Aux<I, K, V> {
     }
 }
 
-pub type KVSparkleTx<V, T> = Wrap<T, Aux<<T as Tx<V>>::I, <V as Id>::I, V>>;
+pub type KVSparkleTx<V, T> = Wrap<T, Box<Aux<<T as Tx<V>>::I, <V as Id>::I, V>>>;
 
 impl<V: Clone + Id, T: Tx<V>> KVSparkleTx<V, T>
 where
     V::I: Hash + Eq,
 {
     pub fn new(tx: T) -> KVSparkleTx<V, T> {
-        Wrap { tx, ax: Aux::new() }
+        Wrap { tx, ax: Box::new(Aux::new()) }
     }
 }

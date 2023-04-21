@@ -6,8 +6,6 @@
 //! For simplicity, we only work with a key-value queries. 
 //! We may implement a multi-sharded version in the future. 
 
-// a table
-mod table;
 // transaction pool (a small widget to store suspended transactions)
 mod tpool;
 // a simple wrapper adding auxilary information to a common transaction

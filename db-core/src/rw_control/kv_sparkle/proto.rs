@@ -1,5 +1,5 @@
 use super::error::*;
-use super::table::*;
+use crate::utilities::*;
 use super::tpool::*;
 use super::twrap::*;
 use parking_lot::Mutex;
@@ -10,7 +10,6 @@ use crate::constraint::*;
 use crate::rw::*;
 use crate::tx::*;
 use std::collections::BTreeSet;
-use std::sync::atomic::AtomicUsize;
 
 // we use this macro to avoid writing the same trait bounds for multiple times
 macro_rules! ellipsis_trait_bag {

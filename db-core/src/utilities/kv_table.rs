@@ -16,6 +16,7 @@ impl<N: Ord + Copy + Nat + Hash, V: Clone> Entry<N, V> {
     }
 }
 
+// a key-value table with versions and dependencies
 pub struct KVTable<N, K, V>
 where
     K: Eq + Hash + Sync + Clone,
@@ -24,7 +25,6 @@ where
 {
     inner: dashmap::DashMap<K, Entry<N, V>>,
 }
-
 pub enum KVTableErr {
     WouldBlock,
     IsPreempted,

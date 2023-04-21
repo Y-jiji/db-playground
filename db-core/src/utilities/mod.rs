@@ -3,3 +3,5 @@
 
 mod wrap;
 pub use wrap::*;
+mod kv_table;
+pub use kv_table::*;

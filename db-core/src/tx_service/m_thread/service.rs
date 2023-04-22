@@ -110,7 +110,7 @@ where ...
         Ok(MThreadHandle {sender_aggr, output_list: Arc::clone(&self.output_list)})
     }
     fn start_all(&mut self) {
-        let (send, recv) = flume::bounded(self.workers + 4);
+        let (send, recv) = flume::unbounded();
         self.sender_aggr = Some(send);
         // start all workers, store killer flags in killer list
         for i in 0..self.workers {

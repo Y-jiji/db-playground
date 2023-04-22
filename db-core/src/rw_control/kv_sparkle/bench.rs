@@ -18,7 +18,7 @@ fn run_u64_unif() {
     let con = super::KVSparkle::<U64Txn, U64Tup>::new();
     // service, multi-thread service
     let srv = MThreadService::new(NR_WORKERS, KVSparkleTx::new, con, dur);
-    widget::u64_little_bench(srv);
+    preset::u64_little_bench(srv);
 }
 
 #[test]
@@ -36,5 +36,5 @@ fn run_revm_10key() {
     let con = super::KVSparkle::<REVMInterpTxn, EVMU256Tup>::new();
     // service, multi-thread service
     let srv = MThreadService::new(NR_WORKERS, KVSparkleTx::new, con, dur);
-    widget::revm_10k_bench(srv);
+    preset::revm_10k_bench(srv);
 }

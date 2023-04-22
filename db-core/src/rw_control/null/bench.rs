@@ -19,7 +19,7 @@ fn run_u64_unif() {
     // service, multi-thread service
     let srv = MThreadService::new(NR_WORKERS, |x| x, con, dur);
     // run service
-    widget::u64_little_bench(srv);
+    preset::u64_little_bench(srv);
 }
 
 #[test]
@@ -36,5 +36,5 @@ fn run_revm_10key() {
     let con = super::Null::<EVMU256Tup, REVMInterpTxn>::new();
     // service, multi-thread service
     let srv = MThreadService::new(NR_WORKERS, |x| x, con, dur);
-    widget::revm_10k_bench(srv);
+    preset::revm_10k_bench(srv);
 }

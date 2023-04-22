@@ -1,84 +1,10 @@
+use typing::tx::*;
 use super::*;
-use std::fmt::Debug;
-use db_test::core_workload::int::unif::{U64Txn, U64Tup, U64Prp, U64Map, U64Gen};
-
-pub fn u64_little_bench<Dur, Con, InnerT>(mut service: MThreadService<U64Txn, U64Tup, Dur, Con, InnerT>) -> Vec<Option<u64>>
-where
-    InnerT: Debug + Tx<U64Tup, I = u64, Prp = U64Prp, Map = U64Map, Out = u64> + 'static,
-    Dur: RWDurable<U64Tup, InnerT> + Sync + Send + 'static,
-    Con: RWControl<U64Tup, InnerT, Dur> + Sync + Send + 'static,
-    Dur::Err: std::fmt::Debug,
-    Con::Err: std::fmt::Debug,
-    InnerT: Tx<U64Tup>,
-{
-    use std::time::*;
-    const N_TXN: u64 = 25000;
-    const N_WARMUP: u64 = 10000;
-    const RWAC: (u64, u64, u64, u64) = (15, 15, 1, 4);
-    const VRNG: u64 = 20000;
-    const SEED: u64 = 1145141919810;
-    let mut workload = U64Gen::new(SEED, RWAC, VRNG);
-    println!("start service");
-    service.start().unwrap();
-    print!("warm up [0/{N_WARMUP}]          \r");
-    for _i in 0..N_WARMUP {
-        let txn = workload.get();
-        if txn.id() == 0 { continue; }
-        service.put(txn).unwrap();
-        print!("warm up [{}/{N_WARMUP}]         \r", _i+1);
-    }
-    println!();
-    let start_time = SystemTime::now();
-    print!("put [0/{N_TXN}]         \r");
-    for _i in N_WARMUP..(N_WARMUP+N_TXN) {
-        let txn = workload.get();
-        if txn.id() == 0 { continue; }
-        service.put(txn).unwrap();
-        print!("put [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
-    }
-    println!();
-    print!("get [0/{N_TXN}]         \r");
-    let mut output = vec![];
-    for _i in N_WARMUP..(N_WARMUP+N_TXN) {
-        let wait = 10;
-        loop {
-            if let Ok(x) = service.get(_i) {
-                output.push(x);
-                break;
-            } else {
-                std::thread::sleep(Duration::from_nanos(wait));
-            }
-        }
-        print!("get [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
-    }
-    println!();
-    println!("elapsed {:.4} (sec)", start_time.elapsed().unwrap().as_secs_f32());
-    println!("throughput {:.4} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
-    #[cfg(feature="internal_info")]
-    for i in 0..N_TXN {
-        println!("output {i:<8}:{:?}", output[i as usize]);
-    }
-    println!("close service");
-    if let Err(MThreadServiceError::ShutdownErrorReport(error_report)) = service.close() {
-        for error in error_report {
-            println!("{error:?}");
-        }
-    }
-    return output;
-}
-
-use db_test::core_workload::eth::revm_interp::{REVMInterpGen, REVMInterpTxn, EVMU256Map, EVMU256Tup, EVMU256Prp};
-use rand::RngCore;
 use revm_interpreter::*;
 use revm_primitives::*;
-pub fn revm_10k_bench<Dur, Con, InnerT>(mut service: MThreadService<REVMInterpTxn, EVMU256Tup, Dur, Con, InnerT>) -> Vec<Option<Bytes>>
-where
-    InnerT: Debug + Tx<EVMU256Tup, I = usize, Prp = EVMU256Prp, Map = EVMU256Map, Out = Bytes> + 'static,
-    Dur: RWDurable<EVMU256Tup, InnerT> + Sync + Send + 'static,
-    Con: RWControl<EVMU256Tup, InnerT, Dur> + Sync + Send + 'static,
-    Dur::Err: std::fmt::Debug,
-    Con::Err: std::fmt::Debug,
-    InnerT: Tx<EVMU256Tup>,
+use rand::*;
+
+pub fn revm_10k_bench(mut service: impl TxService<REVMInterpTxn, EVMU256Tup>) -> Vec<Option<Bytes>>
 {
     use std::time::*;
     use rand_xoshiro::*;
@@ -97,12 +23,12 @@ where
     }
     let mut workload = REVMInterpGen::new(bytecode, template, SEED);
     println!("start service");
-    service.start().unwrap();
+    service.start().unwrap_or_else(|_| panic!("fail to start service"));
     print!("warm up [0/{N_WARMUP}]          \r");
     for _i in 0..N_WARMUP {
         let txn = workload.get();
         if 0 == txn.id() { continue; }
-        service.put(txn).unwrap();
+        service.put(txn).unwrap_or_else(|_| panic!("fail to put transaction {_i}"));
         print!("warm up [{}/{N_WARMUP}]         \r", _i+1);
     }
     println!();
@@ -111,7 +37,7 @@ where
     for _i in N_WARMUP..(N_WARMUP+N_TXN) {
         let txn = workload.get();
         if 0 == txn.id() { continue; }
-        service.put(txn).unwrap();
+        service.put(txn).unwrap_or_else(|_| panic!("fail to put transaction {_i}"));
         print!("put [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
     }
     println!();
@@ -137,10 +63,8 @@ where
         println!("output {i:<8}:{:?}", output[i as usize]);
     }
     println!("close service");
-    if let Err(MThreadServiceError::ShutdownErrorReport(error_report)) = service.close() {
-        for error in error_report {
-            println!("{error:?}");
-        }
+    if let Err(_) = service.close() {
+        println!("service stop with error");
     }
     return output;
 }

@@ -13,6 +13,7 @@ where
     V::I: Hash + Eq,
     T::I: Nat + Hash + Eq,
 {
+    // progress
     prog: Mutex<T::I>,
     pool: DashMap<T::I, T>,
     waiting: DashMap<T::I, HashMap<V::I, Option<V>>>,

@@ -2,7 +2,6 @@ use std::hash::Hash;
 use typing::constraint::*;
 use typing::rw::*;
 use typing::tx::*;
-use std::time::Duration;
 use std::marker::PhantomData;
 
 pub struct Null<V: Id, T: Tx<V>>
@@ -57,9 +56,7 @@ where
             return Ok(Mapper::from_mapping([].into_iter())) ;
         }
         let mut map = vec![];
-        if self.latency_rd != 0 {
-            std::thread::sleep(Duration::from_nanos(self.latency_rd));
-        }
+        for _ in 0..self.latency_rd { std::thread::yield_now() }
         if let Some(prp_iter) = prp.tryc_indexer() {
             for i in prp_iter {
                 self.table.view(&i, |i, v| {
@@ -81,9 +78,7 @@ where
         if self.null_write { 
             return Ok(());
         }
-        if self.latency_wr != 0 {
-            std::thread::sleep(Duration::from_nanos(self.latency_wr));
-        }
+        for _ in 0..self.latency_wr { std::thread::yield_now() }
         for (i, v) in map.into_mapping() {
             match v {
                 Some(v) => {self.table.insert(i, v);}, 

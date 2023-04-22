@@ -18,7 +18,6 @@ where
     const VRNG: u64 = 20000;
     const SEED: u64 = 1145141919810;
     let mut workload = U64Gen::new(SEED, RWAC, VRNG);
-    println!();
     println!("start service");
     service.start().unwrap();
     print!("warm up [0/{N_WARMUP}]          \r");
@@ -38,8 +37,6 @@ where
         print!("put [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
     }
     println!();
-    println!("elapsed {:?} (sec)", start_time.elapsed().unwrap().as_secs_f32());
-    println!("throughput {:?} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
     print!("get [0/{N_TXN}]         \r");
     let mut output = vec![];
     for _i in N_WARMUP..(N_WARMUP+N_TXN) {
@@ -55,11 +52,13 @@ where
         print!("get [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
     }
     println!();
-    println!("close service");
+    println!("elapsed {:.4} (sec)", start_time.elapsed().unwrap().as_secs_f32());
+    println!("throughput {:.4} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
     #[cfg(feature="internal_info")]
     for i in 0..N_TXN {
         println!("output {i:<8}:{:?}", output[i as usize]);
     }
+    println!("close service");
     if let Err(MThreadServiceError::ShutdownErrorReport(error_report)) = service.close() {
         for error in error_report {
             println!("{error:?}");
@@ -93,14 +92,10 @@ where
     fn template(rng: &mut Xoroshiro64StarStar) -> Bytes {
         let mut ten_key_and_val = vec![0u8; 11*64];
         rng.fill_bytes(&mut ten_key_and_val);
-        for (i, v) in ten_key_and_val.iter_mut().enumerate() {
-            *v = if i & 63 == 0 {*v} else if i & 63 == 1 {*v & 0x3f} else {0x0}; 
-        }
         let prefix = hex::decode("40cb7660").unwrap();
         [prefix, ten_key_and_val].concat().into()
     }
     let mut workload = REVMInterpGen::new(bytecode, template, SEED);
-    println!();
     println!("start service");
     service.start().unwrap();
     print!("warm up [0/{N_WARMUP}]          \r");
@@ -120,8 +115,6 @@ where
         print!("put [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
     }
     println!();
-    println!("elapsed {:?} (sec)", start_time.elapsed().unwrap().as_secs_f32());
-    println!("throughput {:?} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
     print!("get [0/{N_TXN}]         \r");
     let mut output = vec![];
     for _i in N_WARMUP..(N_WARMUP+N_TXN) {
@@ -137,11 +130,13 @@ where
         print!("get [{}/{N_TXN}]        \r", _i+1-N_WARMUP);
     }
     println!();
-    println!("close service");
+    println!("elapsed {:.4} (sec)", start_time.elapsed().unwrap().as_secs_f32());
+    println!("throughput {:.4} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
     #[cfg(feature="internal_info")]
     for i in 0..N_TXN {
         println!("output {i:<8}:{:?}", output[i as usize]);
     }
+    println!("close service");
     if let Err(MThreadServiceError::ShutdownErrorReport(error_report)) = service.close() {
         for error in error_report {
             println!("{error:?}");

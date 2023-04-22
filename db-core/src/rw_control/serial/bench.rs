@@ -1,9 +1,11 @@
-const NULL_WRITE: bool = false;
-const RD_LATENCY: u64  = 5;
-const WR_LATENCY: u64  = 5;
+const NULL_WRITE: bool  = false;
+const RD_LATENCY: u64   = 10;
+const WR_LATENCY: u64   = 10;
+const NR_WORKERS: usize = 4;
 
 #[test]
 fn run_u64_unif() {
+    // find this test easily
     println!("{}:{}", file!(), line!());
     // dependencies
     use crate::rw_durable::null::*;
@@ -14,13 +16,14 @@ fn run_u64_unif() {
     // concurrency control, kv sparkle in this module
     let con = super::Serial::<U64Txn, U64Tup>::new();
     // service, multi-thread service
-    let srv = MThreadService::new(4, |x| x, con, dur);
+    let srv = MThreadService::new(NR_WORKERS, |x| x, con, dur);
     // run service
     widget::u64_little_bench(srv);
 }
 
 #[test]
 fn run_revm_10key() {
+    // find this test easily
     println!("{}:{}", file!(), line!());
     // dependencies
     use db_test::core_workload::eth::revm_interp::*;
@@ -31,6 +34,6 @@ fn run_revm_10key() {
     // concurrency control, kv sparkle in this module
     let con = super::Serial::<REVMInterpTxn, EVMU256Tup>::new();
     // service, multi-thread service
-    let srv = MThreadService::new(4, |x| x, con, dur);
+    let srv = MThreadService::new(NR_WORKERS, |x| x, con, dur);
     widget::revm_10k_bench(srv);
 }

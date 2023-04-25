@@ -46,7 +46,7 @@ pub fn u64_little_bench(mut service: impl TxService<U64Txn, U64Tup>) -> Vec<Opti
     println!();
     println!("elapsed {:.4} (sec)", start_time.elapsed().unwrap().as_secs_f32());
     println!("throughput {:.4} (txn/sec)", N_TXN as f64 / start_time.elapsed().unwrap().as_secs_f64());
-    #[cfg(feature="internal_info")]
+    #[cfg(feature="debug")]
     for i in 0..N_TXN {
         println!("output {i:<8}:{:?}", output[i as usize]);
     }

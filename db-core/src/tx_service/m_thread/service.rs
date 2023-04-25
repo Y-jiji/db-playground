@@ -114,7 +114,7 @@ where ...
         self.sender_aggr = Some(send);
         // start all workers, store killer flags in killer list
         for i in 0..self.workers {
-            #[cfg(feature="internal_info")]
+            #[cfg(feature="debug")]
             println!("starting worker [{i}]");
             // start one worker with given parameter
             let (killer, worker) = self.start_one(i, recv.clone());
@@ -134,7 +134,7 @@ where ...
         // close all workers, collect error reports into error collection
         let mut error_collection = vec![];
         for _i in 0..self.workers {
-            #[cfg(feature="internal_info")]
+            #[cfg(feature="debug")]
             println!("closing worker [{_i}]");
             self.killer_list.pop().unwrap().store(true, Relaxed);
             match self.worker_list.pop().unwrap().join() {
@@ -207,7 +207,7 @@ where ...
                         Ok(txn) => (wrapper)(txn),
                         Err(_) => continue,
                     };
-                    #[cfg(feature="internal_info")]
+                    #[cfg(feature="debug")]
                     println!("receive transaction [{:?}]\n{:?}", txn.id(), pooling.iter().map(|(id, _)| id).collect::<Vec<_>>());
                     let tid = txn.id();
                     let txn = con.open(txn, &dur).unwrap();

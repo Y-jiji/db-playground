@@ -73,7 +73,7 @@ where ...
     }
     fn reset(&self, mut txn: KVSparkleTx<V, T>) {
         // ----------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?} reset]       at:{:<8?}",
             txn.id(), self.progress()
@@ -159,7 +159,7 @@ where ...
             todo!("non-indexing query type");
         }
         // -------------------------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?}    rd]       at:{:<8?}      {:?}    {:?}",
             txn.id(), self.progress(), prp, map);
@@ -180,7 +180,7 @@ where ...
     fn wr(&self, mut txn: KVSparkleTx<V, T>, map: MapOf<V, T>, _dur: &D)
     -> Result<Option<KVSparkleTx<V, T>>, Self::Err> {
         // -------------------------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?}    wr]       at:{:<8?}      {:?}",
             txn.id(), self.progress(), map);
@@ -220,7 +220,7 @@ where ...
         use KVSparkleErr::*;
         use KVTableErr::*;
         // -------------------------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?}  done]       at:{:<8?}      {:?}", 
             txn.id(), self.progress(), end);
@@ -256,7 +256,7 @@ where ...
             return Ok((self.get_next(), None));
         }
         // -------------------------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?} final]       at:{:<8?}      {:?}", 
             txn.id(), self.progress(), end);
@@ -284,7 +284,7 @@ where ...
     fn open(&self, mut txn: KVSparkleTx<V, T>, dur: &D)
     -> Result<KVSparkleTx<V, T>, Self::Err> {
         // -------------------------------------------------------------
-        #[cfg(feature="internal_info")]
+        #[cfg(feature="debug")]
         println!(
             "[{:<8?}  open]       at:{:<8?}", 
             txn.id(), self.progress());

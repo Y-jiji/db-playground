@@ -203,14 +203,15 @@ where ...
             core_affinity::set_for_current(core_id);
             while !sigterm.load(Relaxed) {
                 if rand::random::<usize>() % (pooling.len() + 1) == 0 {
-                    let mut txn = match recv_handle.recv() {
+                    let txn = match recv_handle.recv() {
                         Ok(txn) => (wrapper)(txn),
                         Err(_) => continue,
                     };
                     #[cfg(feature="internal_info")]
                     println!("receive transaction [{:?}]\n{:?}", txn.id(), pooling.iter().map(|(id, _)| id).collect::<Vec<_>>());
-                    con.open(&mut txn, &dur).unwrap();
-                    pooling.insert(txn.id(), txn);
+                    let tid = txn.id();
+                    let txn = con.open(txn, &dur).unwrap();
+                    pooling.insert(tid, txn);
                 }
                 let mut txn = match pooling.pop_first() {
                     Some((_, txn)) => txn,

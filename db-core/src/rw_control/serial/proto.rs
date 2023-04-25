@@ -59,10 +59,10 @@ where
     T::Map: Mapper<V::I, V>,
 {
     type Err = ();
-    fn open(&self, txn: &mut T, dur: &D) -> Result<(), Self::Err> {
-        dur.open(txn).map_err(|_|())?;
+    fn open(&self, mut txn: T, dur: &D) -> Result<T, Self::Err> {
+        dur.open(&mut txn).map_err(|_|())?;
         self.waiting.insert(txn.id(), HashMap::from([]));
-        Ok(())
+        Ok(txn)
     }
     fn done(&self, txn: T, end: End, dur: &D) 
     -> Result<(Option<T>, Option<Option<T::Out>>), Self::Err> {

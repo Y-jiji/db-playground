@@ -281,8 +281,8 @@ where ...
         self.ckpts.remove(&tid);
         Ok((self.get_next(), Some(txn.cl())))
     }
-    fn open(&self, txn: &mut KVSparkleTx<V, T>, dur: &D)
-    -> Result<(), Self::Err> {
+    fn open(&self, mut txn: KVSparkleTx<V, T>, dur: &D)
+    -> Result<KVSparkleTx<V, T>, Self::Err> {
         // -------------------------------------------------------------
         #[cfg(feature="internal_info")]
         println!(
@@ -293,8 +293,8 @@ where ...
         let tid = txn.id();
         self.submit(tid);
         self.ckpts.insert(tid, txn.tx.make());
-        dur.open(txn).unwrap_or(());
-        return Ok(())
+        dur.open(&mut txn).unwrap_or(());
+        return Ok(txn)
     }
 }
 

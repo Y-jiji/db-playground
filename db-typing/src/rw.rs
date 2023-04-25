@@ -17,6 +17,6 @@ pub trait RWControl<V, T: Tx<V>, D: RWDurable<V, T>> {
     type Err;
     fn rd(&self, txn: T, prp: T::Prp, dur: &D) -> Result<Option<T>, Self::Err>;
     fn wr(&self, txn: T, map: T::Map, dur: &D) -> Result<Option<T>, Self::Err>;
-    fn open(&self, txn: &mut T, dur: &D) -> Result<(), Self::Err>;
+    fn open(&self, txn: T, dur: &D) -> Result<T, Self::Err>;
     fn done(&self, txn: T, end: End, dur: &D) -> Result<(Option<T>, Option<Option<T::Out>>), Self::Err>;
 }

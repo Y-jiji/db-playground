@@ -20,10 +20,10 @@ where
             Ok(()) => Ok((None, Some(txn.cl())))
         }
     }
-    fn open(&self, txn: &mut T, dur: &D) -> Result<(), Self::Err> {
+    fn open(&self, txn: T, dur: &D) -> Result<T, Self::Err> {
         match dur.open(&txn) {
             Err(e) => Err(format!("{e:?}")),
-            Ok(()) => Ok(())
+            Ok(()) => Ok(txn)
         }
     }
     fn rd(&self, txn: T, prp: T::Prp, dur: &D) -> Result<Option<T>, Self::Err> {
